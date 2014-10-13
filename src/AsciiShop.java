@@ -26,11 +26,15 @@ public class AsciiShop {
         image = new String[height];
 
         for(int line=0; line<height; line++) {
-            if(!scanner.hasNext()) {                    //exit program if not enough lines are inputted
+            if(!scanner.hasNext()) {                    //exit program if not enough lines are input
                 System.out.println("INPUT MISMATCH");
                 return;
             }
             String input = scanner.next();
+            if(input.startsWith("fill")) {              //exit program if too few lines are entered
+                System.out.println("INPUT MISMATCH");
+                return;
+            }
             if(width<0) {
                 width = input.length();
             }
@@ -66,8 +70,8 @@ public class AsciiShop {
                 }
                 fill(image,x,y,c);
             }
-            else {                                          //exit program if more image lines and/or invalid commands
-                System.out.println("INPUT MISMATCH");       //are entered
+            else {                                                  //exit program if invalid commands are entered
+                System.out.println("INPUT MISMATCH");
                 return;
             }
         }
@@ -79,21 +83,25 @@ public class AsciiShop {
     }
 
     public static void fill(String[] image, int x, int y, char c) {
-        char replace = image[y].charAt(x);                   //color to replace
+        char replace = getPixel(image,x,y);                   //color to replace
         String newLine = image[y].substring(0,x) + c + image[y].substring(x+1);  //new String with replaced character
 
-        image[y] = newLine;                                  //insert line into image
-        if(x-1 >= 0 && image[y].charAt(x-1) == replace) {    //check if neighboring pixel exists and is the right color
+        image[y] = newLine;                                   //insert line into image
+        if(x-1 >= 0 && getPixel(image,x-1,y) == replace) {    //check if neighboring pixel exists and is the right color
             fill(image,x-1,y,c);
         }
-        if(x+1 < image[y].length() && image[y].charAt(x+1) == replace) {
+        if(x+1 < image[y].length() && getPixel(image, x + 1, y) == replace) {
             fill(image,x+1,y,c);
         }
-        if(y-1 >=0 && image[y-1].charAt(x) == replace) {
+        if(y-1 >=0 && getPixel(image, x, y - 1) == replace) {
             fill(image,x,y-1,c);
         }
-        if(y+1 < image.length && image[y+1].charAt(x) == replace) {
+        if(y+1 < image.length && getPixel(image, x, y + 1) == replace) {
             fill(image,x,y+1,c);
         }
+    }
+
+    public static char getPixel(String[] image, int x, int y) {
+        return image[y].charAt(x);
     }
 }
