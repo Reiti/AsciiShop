@@ -12,11 +12,11 @@ public class AsciiShop {
         int height= 0;
         String[] image = null;
         if(scanner.hasNext()) {
-            if(!scanner.next().equals("read")) {
+            if(!scanner.next().equals("read")) {        //first command has to be read
                 System.out.println("INPUT MISMATCH");
                 return;
             }
-            if(!scanner.hasNextInt()) {
+            if(!scanner.hasNextInt()) {                //read has to be followed by an int
                 System.out.println("INPUT MISMATCH");
                 return;
             }
@@ -26,7 +26,7 @@ public class AsciiShop {
         image = new String[height];
 
         for(int line=0; line<height; line++) {
-            if(!scanner.hasNext()) {
+            if(!scanner.hasNext()) {                    //exit program if not enough lines are inputted
                 System.out.println("INPUT MISMATCH");
                 return;
             }
@@ -60,14 +60,14 @@ public class AsciiShop {
                     return;
                 }
                 char c = scanner.next().charAt(0);
-                if(x > width || x < 0 || y > height || y < 0) {
-                    System.out.println("OPERATION FAILED");
+                if(x > width || x < 0 || y > height || y < 0) {     //check if coordinates for fill are
+                    System.out.println("OPERATION FAILED");         //within boundaries
                     return;
                 }
                 fill(image,x,y,c);
             }
-            else {
-                System.out.println("INPUT MISMATCH");
+            else {                                          //exit program if more image lines and/or invalid commands
+                System.out.println("INPUT MISMATCH");       //are entered
                 return;
             }
         }
@@ -79,10 +79,11 @@ public class AsciiShop {
     }
 
     public static void fill(String[] image, int x, int y, char c) {
-        char replace = image[y].charAt(x);
-        String newLine = image[y].substring(0,x)+c+image[y].substring(x+1);
-        image[y] = newLine;
-        if(x-1 >= 0 && image[y].charAt(x-1) == replace) {
+        char replace = image[y].charAt(x);                   //color to replace
+        String newLine = image[y].substring(0,x) + c + image[y].substring(x+1);  //new String with replaced character
+
+        image[y] = newLine;                                  //insert line into image
+        if(x-1 >= 0 && image[y].charAt(x-1) == replace) {    //check if neighboring pixel exists and is the right color
             fill(image,x-1,y,c);
         }
         if(x+1 < image[y].length() && image[y].charAt(x+1) == replace) {
