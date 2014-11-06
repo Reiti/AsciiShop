@@ -8,28 +8,59 @@ public class AsciiShop {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        AsciiImage image = new AsciiImage();
+        int height = 0;
+        int width = 0;
+        AsciiImage image;
+        if(scanner.hasNext()) {
+            if(!scanner.next().equals("create")) {
+                System.out.println("INPUT MISMATCH");
+                return;
+            }
+            if(!scanner.hasNextInt()) {
+                System.out.println("INPUT MISMATCH");
+                return;
+            }
+            width = scanner.nextInt();
+            if(!scanner.hasNextInt()) {
+                System.out.println("INPUT MISMATCH");
+                return;
+            }
 
-        int height = getReadCommand(scanner);           //read the read command
-        if(height == -1) {
+            height = scanner.nextInt();
+        }
+        if(height <= 0 || width <= 0) {
             System.out.println("INPUT MISMATCH");
             return;
         }
+        image = new AsciiImage(width, height);
 
-        for(int lines = 0; lines < height; lines++) {
-            if(!scanner.hasNext()) {                    //check if too few lines are entered
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-            if(!image.addLine(scanner.next())) {
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-        }
 
         while(scanner.hasNext()) {
             String command = scanner.next();
-            if(command.equals("fill")) {
+            if(command.equals("load")) {
+                if(!scanner.hasNext()){
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                String eof = scanner.next();
+                int lines = 0;
+                while(scanner.hasNext()) {
+                    String line = scanner.next();
+                    if(line.trim().equals(eof))
+                        break;
+                    if(line.trim().length()!=width) {
+                        System.out.println("INPUT MISMATCH");
+                        return;
+                    }
+                    image.addLine(line.trim(), lines);
+                    lines++;
+                }
+                if(lines!=height) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+            }
+            else if(command.equals("fill")) {
                 int x = readInt(scanner);
                 if(x == -1) {
                     System.out.println("INPUT MISMATCH");
@@ -51,27 +82,64 @@ public class AsciiShop {
                     System.out.println("OPERATION FAILED");
                     return;
                 }
-                image.fill(x,y,c);
+                image.fill(x, y, c);
             }
             else if(command.equals("transpose")) {
                 image.transpose();
             }
-            else if(command.equals("flip-v")) {
-                image.flipV();
+            else if(command.equals("print")) {
+                System.out.println(image.toString());
             }
-            else if(command.equals("uniqueChars")) {
-                int uc = image.getUniqueChars();
-                System.out.println(uc);
+            else if(command.equals("clear")) {
+                image.clear();
             }
-            else if(command.equals("symmetric-h")) {
-                System.out.println(image.isSymmetricH());
+            else if(command.equals("replace")) {
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char oldC = scanner.next().charAt(0);
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char newC = scanner.next().charAt(0);
+                image.replace(oldC, newC);
+            }
+            else if(command.equals("line")) {
+                if(!scanner.hasNextInt()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                int x0 = scanner.nextInt();
+                if(!scanner.hasNextInt()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                int y0 = scanner.nextInt();
+                if(!scanner.hasNextInt()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                int x1 = scanner.nextInt();
+                if(!scanner.hasNextInt()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                int y1 = scanner.nextInt();
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char c = scanner.next().charAt(0);
+                System.out.println("WTF");
+                image.line(x0, y0, x1, y1, c);
             }
             else {                                        //exit program if invalid command is entered
                 System.out.println("INPUT MISMATCH");
                 return;
             }
         }
-        System.out.println(image.toString());
     }
 
     /**
@@ -87,7 +155,7 @@ public class AsciiShop {
 
     /**
      *
-     * @param scanne rScanner to read input from
+     * @param scanner Scanner to read input from
      * @return the read char or a space if failed to read char
      */
     public static char readChar(Scanner scanner) {

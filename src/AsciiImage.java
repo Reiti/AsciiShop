@@ -3,164 +3,145 @@
  * Date: 13.10.2014
  * Time: 16:15
  */
-public class AsciiImage {
-    private int height;
-    private int width;
-    private String image;
 
-    public AsciiImage() {
-        height = 0;
-        width = 0;
-        image = "";
+
+public class AsciiImage {
+    private char[][] image;
+    private int width;
+    private int height;
+
+    public AsciiImage(int width, int height) {
+        this.width = width;
+        this.height = height;
+        image = new char[height][width];
     }
 
-    /**
-     *
-     * @param line The line to be added to the image
-     * @return true if same line length as other lines, else false
-     */
-    public boolean addLine(String line) {
-        if(line.length() > 0) {
-            if(width == 0)
-                width = line.length();
-            if(line.length() == width) {
-                height++;
-                image+=line;
-                return true;
+    public void setPixel(int x, int y, char c) {
+        image[y][x] = c;
+    }
+
+    public char getPixel(int x, int y) {
+        return image[y][x];
+    }
+
+    public void clear() {
+        for(int x=0; x<width; x++) {
+            for(int y=0; y<height; y++) {
+                setPixel(x,y,'.');
             }
         }
-        return false;
-    }
-    public int getHeight() {
-        return height;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
+    public void addLine(String line, int lineNumber) {
+        for(int i=0; i<line.length(); i++) {
+            setPixel(i, lineNumber, line.charAt(i));
+        }
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public int getWidth() {
         return width;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
+    public void replace(char oldChar, char newChar) {
+        for(int x=0; x<width; x++) {
+            for(int y=0; y<height; y++) {
+                if(getPixel(x,y) == oldChar)
+                    setPixel(x,y,newChar);
+            }
+        }
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    /**
-     * Fills an area of a certain color with a new color
-     * @param x x-coordinate of start pixel
-     * @param y y-coordinate of start pixel
-     * @param c color to fill with
-     */
     public void fill(int x, int y, char c) {
-        char color = getPixel(x,y);
+        char oldC = getPixel(x,y);
         setPixel(x,y,c);
 
-        //recursively call fill on neighboring pixels of the same color
-        if(isWithinBounds(x-1,y) && getPixel(x-1,y) == color)
-            fill(x-1,y,c);
-        if(isWithinBounds(x+1,y) && getPixel(x+1,y) == color)
-            fill(x+1,y,c);
-        if(isWithinBounds(x,y-1) && getPixel(x,y-1) == color)
-            fill(x,y-1,c);
-        if(isWithinBounds(x,y+1) && getPixel(x,y+1) == color)
-            fill(x,y+1,c);
+        if(isWithinBounds(x+1,y) && getPixel(x + 1, y) == oldC)
+            fill(x+1, y, c);
+        if(isWithinBounds(x-1, y) && getPixel(x-1, y) == oldC)
+            fill(x-1, y, c);
+        if(isWithinBounds(x, y+1) && getPixel(x, y+1) == oldC)
+            fill(x, y+1, c);
+        if(isWithinBounds(x, y-1) && getPixel(x, y-1) == oldC)
+            fill(x, y-1, c);
     }
 
-    private char getPixel(int x, int y) {
-        return image.charAt(y*width+x);
-    }
-
-    private void setPixel(int x, int y, char c) {
-        image = image.substring(0, y * width + x) + c + image.substring(y * width + x + 1);
-    }
-
-    /**
-     * Transposes the image
-     * (=swap rows and columns)
-     */
     public void transpose() {
-        int newWidth = height;
-        int newHeight = width;
-        String newImage = "";
+        char newImage[][] = new char[height][width];
         for(int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {    //iterate over all chars in one column
-                newImage += getPixel(x,y);        //and add them to one line
+            for(int y = 0; y < height; y++) {
+                //in char array first coordinate is height, hence this is a transpose
+                newImage[x][y] = getPixel(x,y);
             }
         }
-        image = newImage;
 
-        //flip heigth and width for the transposed image
-        height = newHeight;
-        width = newWidth;
-    }
-
-    /**
-     * Flips the image vertically
-     */
-    public void flipV() {
-        String newImage = "";
-        for(int y = height-1; y >= 0; y--) {
-            for(int x = 0; x < width; x++) {
-                newImage+=getPixel(x,y);        //add last line of old image to new
-            }
-        }
         image = newImage;
     }
 
-    /**
-     * Calculate the number of unique chars in the image
-     * @return the number of unique chars
-     */
-    public int getUniqueChars() {
-        String uniqueChars = "";
-        for(char c:image.toCharArray()) {
-            if(!uniqueChars.contains(String.valueOf(c)))           //checks if the character was already encountered
-                uniqueChars+=c;                                    //if not add it to list of encountered characters
+    @Override
+    public String toString() {
+        String out = "";
+        for(int line = 0; line<height; line++) {
+            out += new String(image[line]);
+            out += "\n";
         }
-        return uniqueChars.length();
+        return out;
+    }
+
+    public boolean isWithinBounds(int x, int y) {
+        return !(x >= width || x < 0 || y >= height || y < 0);
     }
 
     /**
-     * Checks if the image is horizontally symmetric
-     * @return true if the image is symmetric, else false
+     *
+     * @param x0 x-coordinate of start point
+     * @param y0 y-coordinate of start point
+     * @param x1 x-coordinate of end point
+     * @param y1 y-coordinate of end point
+     * @param c character to draw the line with
+     * @return true if coordinates within bounds, else false
      */
-    public boolean isSymmetricH() {
-        for(int line = 0; line < height; line ++) {
-            //iterate over the line from left to right and from right to left
-            //stop once they passed the middle of the line
-            for(int left=0, right = width-1; left<=right; left++,right--) {
-                //if the pixels don't have the same color, the picture is no symmetrical
-                if(getPixel(left,line) != getPixel(right, line)) {
-                    return false;
-                }
-            }
+    public boolean line(int x0, int y0, int x1, int y1, char c) {
+        if(!isWithinBounds(x0, y0) || !isWithinBounds(x1, y1))
+            return false;
+
+        int deltaX = x0-x1;
+        int deltaY = y0-y1;
+        boolean axesSwap = false;
+        if(Math.abs(deltaY) > Math.abs(deltaX)) {
+            //Swap y1 with x1, y0 with x0 (swaps axes)
+            int t = x0;
+            x0 = y0;
+            y0 = t;
+            t = x1;
+            x1 = y1;
+            y1 = t;
+            axesSwap = true;
+        }
+        if(x1 < x0) {
+            //swap start and end point if start is further right than left
+            int t = x0;
+            x0 = x1;
+            x1 = t;
+            t = y0;
+            y0 = y1;
+            y1 = t;
+        }
+        System.out.println(x0 + " " + y0 + " " + x1 + " " + y1);
+        int y = y0;
+        for(int x=x0; x < x1; x++) {
+            //swap x and y if the axes have been swapped
+            if(axesSwap)
+                setPixel(y,x,c);
+            else
+                setPixel(x,y,c);
+            if(deltaX != 0)
+                y += deltaY/deltaX;
         }
         return true;
     }
 
-    public String toString() {
-        String s = "";
-        for(int y = 0; y < height; y++) {
-           for(int x = 0; x < width; x++) {
-               s+=getPixel(x,y);
-           }
-           s+="\n";
-        }
-        s+=width + " " + height;
-        return s;
-    }
-
-    private boolean isWithinBounds(int x, int y) {
-        return x >= 0 && x < width && y >= 0 && y < height;
-    }
 }
