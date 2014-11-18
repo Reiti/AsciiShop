@@ -132,11 +132,14 @@ public class AsciiShop {
                     return;
                 }
                 char c = scanner.next().charAt(0);
-                System.out.println("WTF");
                 image.line(x0, y0, x1, y1, c);
             }
+            else if(command.equals("create")) {
+                System.out.println("UNKNOWN COMMAND");
+                return;
+            }
             else {                                        //exit program if invalid command is entered
-                System.out.println("INPUT MISMATCH");
+                System.out.println("UNKNOWN COMMAND");
                 return;
             }
         }

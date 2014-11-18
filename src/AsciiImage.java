@@ -14,6 +14,7 @@ public class AsciiImage {
         this.width = width;
         this.height = height;
         image = new char[height][width];
+        fill(0,0,'.');
     }
 
     public void setPixel(int x, int y, char c) {
@@ -70,14 +71,16 @@ public class AsciiImage {
     }
 
     public void transpose() {
-        char newImage[][] = new char[height][width];
+        char newImage[][] = new char[width][height];
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
                 //in char array first coordinate is height, hence this is a transpose
                 newImage[x][y] = getPixel(x,y);
             }
         }
-
+        int temp = width;
+        width = height;
+        height = temp;
         image = newImage;
     }
 
@@ -104,44 +107,41 @@ public class AsciiImage {
      * @param c character to draw the line with
      * @return true if coordinates within bounds, else false
      */
-    public boolean line(int x0, int y0, int x1, int y1, char c) {
+    public void line(int x0, int y0, int x1, int y1, char c) {
         if(!isWithinBounds(x0, y0) || !isWithinBounds(x1, y1))
-            return false;
+            return;
 
-        int deltaX = x0-x1;
-        int deltaY = y0-y1;
-        boolean axesSwap = false;
+        double deltaX = x1-x0;
+        double deltaY = y1-y0;
         if(Math.abs(deltaY) > Math.abs(deltaX)) {
-            //Swap y1 with x1, y0 with x0 (swaps axes)
-            int t = x0;
-            x0 = y0;
-            y0 = t;
-            t = x1;
-            x1 = y1;
-            y1 = t;
-            axesSwap = true;
-        }
-        if(x1 < x0) {
-            //swap start and end point if start is further right than left
-            int t = x0;
-            x0 = x1;
-            x1 = t;
-            t = y0;
-            y0 = y1;
-            y1 = t;
-        }
-        System.out.println(x0 + " " + y0 + " " + x1 + " " + y1);
-        int y = y0;
-        for(int x=x0; x < x1; x++) {
-            //swap x and y if the axes have been swapped
-            if(axesSwap)
-                setPixel(y,x,c);
+            transpose();
+            if(deltaY <= 0)
+                drawLine(y1, x1, y0, x0, c);
             else
-                setPixel(x,y,c);
-            if(deltaX != 0)
-                y += deltaY/deltaX;
+                drawLine(y0,x0,y1,x1,c);
+            transpose();
         }
-        return true;
+        else {
+            if(deltaX <= 0)
+                drawLine(x1,y1,x0,y0,c);
+            else
+                drawLine(x0,y0,x1,y1,c);
+        }
+    }
+
+    public void drawLine(int x0, int y0, int x1, int y1, char c) {
+        double y = y0;
+        double deltaY = y1-y0;
+        double deltaX = x1-x0;
+        if(x0 != x1 || y0 != y1) {
+             for(int x=x0; x<=x1; x++) {
+                setPixel(x,(int)Math.round(y),c);
+                if(deltaX > 0)
+                    y+=deltaY/deltaX;
+            }
+        }
+        else
+            setPixel(x0, y0,c);
     }
 
 }
