@@ -5,12 +5,13 @@ import java.util.Scanner;
  * Checks if a entered Ascii Image is formatted correctly
  */
 public class AsciiShop {
-
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int height = 0;
         int width = 0;
         AsciiImage image;
+        AsciiStack stack = new AsciiStack(3);
+
         if(scanner.hasNext()) {
             if(!scanner.next().equals("create")) {
                 System.out.println("INPUT MISMATCH");
@@ -42,6 +43,7 @@ public class AsciiShop {
                     System.out.println("INPUT MISMATCH");
                     return;
                 }
+                stack.push(new AsciiImage(image));
                 String eof = scanner.next();
                 int lines = 0;
                 while(scanner.hasNext()) {
@@ -82,15 +84,18 @@ public class AsciiShop {
                     System.out.println("OPERATION FAILED");
                     return;
                 }
+                stack.push(new AsciiImage(image));
                 image.fill(x, y, c);
             }
             else if(command.equals("transpose")) {
+                stack.push(new AsciiImage(image));
                 image.transpose();
             }
             else if(command.equals("print")) {
                 System.out.println(image.toString());
             }
             else if(command.equals("clear")) {
+                stack.push(new AsciiImage(image));
                 image.clear();
             }
             else if(command.equals("replace")) {
@@ -104,6 +109,7 @@ public class AsciiShop {
                     return;
                 }
                 char newC = scanner.next().charAt(0);
+                stack.push(new AsciiImage(image));
                 image.replace(oldC, newC);
             }
             else if(command.equals("line")) {
@@ -132,11 +138,48 @@ public class AsciiShop {
                     return;
                 }
                 char c = scanner.next().charAt(0);
+                stack.push(new AsciiImage(image));
                 image.line(x0, y0, x1, y1, c);
             }
             else if(command.equals("create")) {
                 System.out.println("UNKNOWN COMMAND");
                 return;
+            }
+            else if(command.equals("undo")) {
+                AsciiImage tempImage = stack.pop();
+                if(tempImage == null)
+                    System.out.println("STACK EMPTY");
+                else {
+                    System.out.println("STACK USAGE " + stack.size() + "/" + stack.capacity());
+                    image = tempImage;
+                }
+            }
+            else if(command.equals("grow")) {
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char c = scanner.next().charAt(0);
+                stack.push(new AsciiImage(image));
+                image.growRegion(c);
+            }
+            else if(command.equals("centroid")) {
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char c = scanner.next().charAt(0);
+                AsciiPoint cent = image.getCentroid(c);
+                System.out.println(cent);
+            }
+            else if(command.equals("straighten")) {
+                if(!scanner.hasNext()) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
+                char c = scanner.next().charAt(0);
+                stack.push(new AsciiImage(image));
+                image.straightenRegion(c);
             }
             else {                                        //exit program if invalid command is entered
                 System.out.println("UNKNOWN COMMAND");
