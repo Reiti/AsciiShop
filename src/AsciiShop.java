@@ -9,8 +9,9 @@ public class AsciiShop {
         Scanner scanner = new Scanner(System.in);
         int height = 0;
         int width = 0;
+        String charset = null;
         AsciiImage image;
-        AsciiStack stack = new AsciiStack(3);
+        AsciiStack stack = new AsciiStack();
 
         if(scanner.hasNext()) {
             if(!scanner.next().equals("create")) {
@@ -26,77 +27,57 @@ public class AsciiShop {
                 System.out.println("INPUT MISMATCH");
                 return;
             }
-
             height = scanner.nextInt();
+            if(!scanner.hasNext()) {
+                System.out.println("INPUT MISMATCH");
+                return;
+            }
+            charset = scanner.next();
         }
         if(height <= 0 || width <= 0) {
             System.out.println("INPUT MISMATCH");
             return;
         }
-        image = new AsciiImage(width, height);
+        image = new AsciiImage(width, height, charset);
 
 
         while(scanner.hasNext()) {
             String command = scanner.next();
             if(command.equals("load")) {
+                Operation load = null;
                 if(!scanner.hasNext()){
                     System.out.println("INPUT MISMATCH");
                     return;
                 }
                 stack.push(new AsciiImage(image));
                 String eof = scanner.next();
-                int lines = 0;
+                String data = "";
                 while(scanner.hasNext()) {
                     String line = scanner.next();
                     if(line.trim().equals(eof))
                         break;
-                    if(line.trim().length()!=width) {
-                        System.out.println("INPUT MISMATCH");
-                        return;
-                    }
-                    image.addLine(line.trim(), lines);
-                    lines++;
+                    data += line+"\n";
                 }
-                if(lines!=height) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-            }
-            else if(command.equals("fill")) {
-                int x = readInt(scanner);
-                if(x == -1) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-
-                int y = readInt(scanner);
-                if(y == -1) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-
-                char c = readChar(scanner);
-                if(c == ' ') {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                if(x >= image.getWidth() || y >= image.getHeight()) {
+                load = new LoadOperation(data);
+                try {
+                    image = load.execute(image);
+                } catch (OperationException e) {
                     System.out.println("OPERATION FAILED");
                     return;
                 }
-                stack.push(new AsciiImage(image));
-                image.fill(x, y, c);
-            }
-            else if(command.equals("transpose")) {
-                stack.push(new AsciiImage(image));
-                image.transpose();
             }
             else if(command.equals("print")) {
                 System.out.println(image.toString());
             }
             else if(command.equals("clear")) {
                 stack.push(new AsciiImage(image));
-                image.clear();
+                Operation clear = new ClearOperation();
+                try {
+                    image = clear.execute(image);
+                } catch (OperationException e) {
+                    System.out.println("OPERATION FAILED");
+                    return;
+                }
             }
             else if(command.equals("replace")) {
                 if(!scanner.hasNext()) {
@@ -110,36 +91,13 @@ public class AsciiShop {
                 }
                 char newC = scanner.next().charAt(0);
                 stack.push(new AsciiImage(image));
-                image.replace(oldC, newC);
-            }
-            else if(command.equals("line")) {
-                if(!scanner.hasNextInt()) {
-                    System.out.println("INPUT MISMATCH");
+                Operation replace = new ReplaceOperation(oldC, newC);
+                try {
+                    image = replace.execute(image);
+                } catch (OperationException e) {
+                    System.out.println("OPERATION FAILED");
                     return;
                 }
-                int x0 = scanner.nextInt();
-                if(!scanner.hasNextInt()) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                int y0 = scanner.nextInt();
-                if(!scanner.hasNextInt()) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                int x1 = scanner.nextInt();
-                if(!scanner.hasNextInt()) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                int y1 = scanner.nextInt();
-                if(!scanner.hasNext()) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                char c = scanner.next().charAt(0);
-                stack.push(new AsciiImage(image));
-                image.line(x0, y0, x1, y1, c);
             }
             else if(command.equals("create")) {
                 System.out.println("UNKNOWN COMMAND");
@@ -147,39 +105,29 @@ public class AsciiShop {
             }
             else if(command.equals("undo")) {
                 AsciiImage tempImage = stack.pop();
+                image = tempImage;
                 if(tempImage == null)
                     System.out.println("STACK EMPTY");
-                else {
-                    System.out.println("STACK USAGE " + stack.size() + "/" + stack.capacity());
-                    image = tempImage;
-                }
             }
-            else if(command.equals("grow")) {
+            else if(command.equals("filter")) {
                 if(!scanner.hasNext()) {
                     System.out.println("INPUT MISMATCH");
                     return;
                 }
-                char c = scanner.next().charAt(0);
+                String type = scanner.next();
+                if(!type.equals("median")) {
+                    System.out.println("INPUT MISMATCH");
+                    return;
+                }
                 stack.push(new AsciiImage(image));
-                image.growRegion(c);
-            }
-            else if(command.equals("centroid")) {
-                if(!scanner.hasNext()) {
-                    System.out.println("INPUT MISMATCH");
+                Operation median = new MedianOperation();
+                try {
+                    image = median.execute(image);
+                } catch (OperationException e) {
+                    System.out.println("OPERATION FAILED");
                     return;
                 }
-                char c = scanner.next().charAt(0);
-                AsciiPoint cent = image.getCentroid(c);
-                System.out.println(cent);
-            }
-            else if(command.equals("straighten")) {
-                if(!scanner.hasNext()) {
-                    System.out.println("INPUT MISMATCH");
-                    return;
-                }
-                char c = scanner.next().charAt(0);
-                stack.push(new AsciiImage(image));
-                image.straightenRegion(c);
+
             }
             else {                                        //exit program if invalid command is entered
                 System.out.println("UNKNOWN COMMAND");

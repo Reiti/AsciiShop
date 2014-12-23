@@ -4,82 +4,79 @@
  * Time: 13:45
  */
 public class AsciiStack {
-    private int increment;
-    private AsciiImage[] stack;
-    private int stackPointer;
+    private class AsciiStackNode {
+        int size=0;
+        private AsciiStackNode next = null;
+        private AsciiImage image = null;
 
-    public AsciiStack(int increment) {
-        this.increment = increment;
-        stack = new AsciiImage[increment];
-        stackPointer = -1;
+        public AsciiStackNode(AsciiImage img, AsciiStackNode next) {
+            this.image = img;
+            this.next = next;
+            //set size of current list to size of list after this element + 1
+            if(next != null)
+                size = next.size+1;
+        }
+
+        public AsciiImage getImage() {
+            return image;
+        }
+
+        public AsciiStackNode getNext() {
+            return next;
+        }
+
+        public int size() {
+            return size;
+        }
+
+
     }
 
-    public int capacity() {
-        return stack.length;
+    private AsciiStackNode head = null;
+    public AsciiStack() {
     }
 
     public boolean empty() {
-        return stackPointer == -1;
-    }
-
-    /**
-     * Pops one value from the stack
-     * @return the popped value
-     */
-    public AsciiImage pop() {
-        if(empty())
-            return null;
-        AsciiImage val = peek();
-        if(stackPointer+increment < stack.length)
-            shrink();
-        stack[stackPointer--] = null;
-        return val;
-    }
-
-    public AsciiImage peek() {
-        if(empty())
-            return null;
-        return stack[stackPointer];
-    }
-
-    /**
-     * Pushes a value onto the stack
-     * @param img the pushed value
-     */
-    public void push(AsciiImage img) {
-        stack[++stackPointer] = img;
-        if((stackPointer + increment) > stack.length)
-            grow();
-    }
-
-    /**
-     * Grows the size of the array used to represent the stack
-     */
-    private void grow() {
-        if(stack.length < increment)
-            return;
-        AsciiImage[] newStack = new AsciiImage[stack.length+increment];
-        System.arraycopy(stack,0,newStack,0,stack.length);
-        stack = newStack;
-    }
-
-    /**
-     * Shrinks the size of the array used to represent the stack
-     */
-    private void shrink() {
-        if(stack.length == increment)
-            return;
-        AsciiImage[] newStack  = new AsciiImage[stack.length-increment];
-        System.arraycopy(stack,0,newStack,0,newStack.length);
-        stack = newStack;
+        return head==null;
     }
 
     /**
      *
-     * @return the size of the stack
+     * @return null if stack is empty, else the topmost element, the element is then removed
+     */
+    public AsciiImage pop() {
+        if(empty())
+            return null;
+        AsciiImage image = head.getImage();
+        head = head.next;
+        return image;
+    }
+
+    /**
+     *
+     * @return null if stack is empty, else the topmost element
+     */
+    public AsciiImage peek() {
+        if(empty())
+            return null;
+        return head.getImage();
+    }
+
+    /**
+     * Adds a new image to the undo stack
+     * @param img The AsciiImage to be added
+     */
+    public void push(AsciiImage img) {
+        head = new AsciiStackNode(img,head);
+    }
+
+    /**
+     * @return the size of the undo stack
      */
     public int size() {
-        return stackPointer+1;
+        if(empty())
+            return 0;
+        return head.size();
     }
 
 }
