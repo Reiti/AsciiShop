@@ -46,7 +46,6 @@ public class AsciiShop {
         image = new AsciiImage(width, height, charset);
 
 
-
         while(scanner.hasNext()) {
             String command = scanner.next();
             if (command.equals("undo")) {

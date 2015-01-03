@@ -1,3 +1,6 @@
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -18,11 +21,46 @@ public class FilterFactory implements Factory {
      * @throws FactoryException
      */
     public Operation create(Scanner scanner) throws FactoryException {
-        if(!scanner.hasNext())
+        String type;
+        int size = 3;
+        String borderTreatment = "x";
+        BlockGenerator gen;
+        if(!scanner.hasNextLine())
             throw new FactoryException("Not enough parameters");
-        String type = scanner.next();
-        if(!type.equals("median"))
-            throw new FactoryException("Wrong filter type");
-        return new MedianOperation();
+        String[] parameters = scanner.nextLine().substring(1).split(" ");
+        if(parameters.length == 0)
+            throw new FactoryException("Not enough parameters");
+
+        type = parameters[0];
+
+        if(parameters.length == 2) {
+            try {
+                size = Integer.parseInt(parameters[1]);
+            } catch(NumberFormatException e) {
+                borderTreatment = parameters[1];
+            }
+        }
+        if(parameters.length == 3) {
+            size = Integer.parseInt(parameters[1]);
+            borderTreatment = parameters[2];
+        }
+
+        if(borderTreatment.equals("x"))
+            gen = new XBlockGenerator(size);
+        else if(borderTreatment.equals("circular"))
+            gen = new CircularBlockGenerator(size);
+        else if(borderTreatment.equals("replicate"))
+            gen = new ReplicateBlockGenerator(size);
+        else if(borderTreatment.equals("symmetric"))
+            gen = new SymmetricBlockGenerator(size);
+        else
+            throw new FactoryException("Invalid Border Treatment Type");
+
+        if(type.equals("average"))
+            return new AverageOperation(gen);
+        else if(type.equals("median"))
+            return new MedianOperation(gen);
+        else
+            throw new FactoryException("Invalid Filter type");
     }
 }
