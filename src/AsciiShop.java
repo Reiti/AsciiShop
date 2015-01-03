@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
 
 /**
@@ -8,42 +9,12 @@ import java.util.Scanner;
 public class AsciiShop {
 
     private static HashMap<String, Factory> operations = new HashMap<String, Factory>();
-
+    private static MetricSet<AsciiImage> saved = new MetricSet<AsciiImage>();
     public static void main(String[] args) {
         initOperations();
         Scanner scanner = new Scanner(System.in);
-        int height = 0;
-        int width = 0;
-        String charset = null;
-        AsciiImage image;
+        AsciiImage image = null;
         AsciiStack stack = new AsciiStack();
-
-        if(scanner.hasNext()) {
-            if(!scanner.next().equals("create")) {
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-            if(!scanner.hasNextInt()) {
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-            width = scanner.nextInt();
-            if(!scanner.hasNextInt()) {
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-            height = scanner.nextInt();
-            if(!scanner.hasNext()) {
-                System.out.println("INPUT MISMATCH");
-                return;
-            }
-            charset = scanner.next();
-        }
-        if(height <= 0 || width <= 0) {
-            System.out.println("INPUT MISMATCH");
-            return;
-        }
-        image = new AsciiImage(width, height, charset);
 
 
         while(scanner.hasNext()) {
@@ -55,12 +26,19 @@ public class AsciiShop {
                 else
                     image = tempImage;
             } else if (command.equals("print")) {
-                System.out.println(image.toString());
+                if(image!=null)
+                    System.out.println(image.toString());
             } else if(command.equals("histogram")) {
                 AsciiImage hist = Histogram.getHistogram(image);
                 System.out.println(hist.toString());
+            } else if(command.equals("printsaved")) {
+                if(saved.size()==0)
+                    System.out.println("NO SAVED IMAGES");
+                for (AsciiImage aSaved : saved)
+                    System.out.println(aSaved.toString());
             } else {
-                stack.push(new AsciiImage(image));
+                if(image!=null)
+                    stack.push(new AsciiImage(image));
                 if (operations.get(command) != null) {
                     try {
                         image = operations.get(command).create(scanner).execute(image);
@@ -86,6 +64,9 @@ public class AsciiShop {
         operations.put("filter", new FilterFactory());
         operations.put("load", new LoadFactory());
         operations.put("replace", new ReplaceFactory());
+        operations.put("create", new CreateFactory());
+        operations.put("save", new SaveFactory(saved));
+        operations.put("search", new SearchFactory(saved));
     }
 
 }
